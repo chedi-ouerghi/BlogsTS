@@ -37,7 +37,7 @@ export class BlogController {
   ) {
     try {
       console.log('🔍 Utilisateur connecté:', req.user);
-      console.log('📸 Fichiers reçus:', files); 
+      console.log('📸 Fichiers reçus:', files);
 
       createBlogDto.author = req.user._id;
 
@@ -159,10 +159,7 @@ export class BlogController {
   async delete(@Param('id') id: string, @Request() req, @Res() res: Response) {
     try {
       await this.blogService.delete(id, req.user._id);
-      return res.status(HttpStatus.OK).json({
-        success: true,
-        message: 'Blog supprimé avec succès',
-      });
+      return res.status(HttpStatus.NO_CONTENT).send(); // 204 No Content
     } catch (error) {
       return res.status(HttpStatus.FORBIDDEN).json({
         success: false,

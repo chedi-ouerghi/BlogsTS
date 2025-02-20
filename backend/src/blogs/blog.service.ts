@@ -5,7 +5,7 @@ import {
 } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
 import { Model, Types } from 'mongoose';
-import { Blog } from 'src/schemas/Blog.schema';
+import { Blog } from '../schemas/Blog.schema';
 import { CreateBlogDto } from './dtos/create-blog.dto';
 import { UpdateBlogDto } from './dtos/update-blog.dto';
 

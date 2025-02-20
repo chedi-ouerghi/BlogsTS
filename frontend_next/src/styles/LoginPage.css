@@ -1,0 +1,91 @@
+/* 🎨 Styles généraux */
+.login-container {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  height: 100vh;
+  background: linear-gradient(135deg, #1a1a2e, #16213e, #0f3460);
+  color: white;
+  font-family: "Poppins", sans-serif;
+}
+
+/* 🏠 Card principale */
+.login-card {
+  background: rgba(255, 255, 255, 0.1);
+  padding: 2.5rem;
+  border-radius: 12px;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+  backdrop-filter: blur(8px);
+  text-align: center;
+  max-width: 400px;
+  width: 90%;
+}
+
+/* 📌 Titre */
+.login-title {
+  font-size: 2rem;
+  font-weight: 600;
+  margin-bottom: 1.5rem;
+}
+
+/* 📝 Formulaire */
+.login-form {
+  display: flex;
+  flex-direction: column;
+  gap: 1.2rem;
+}
+
+/* 🔑 Champs d'entrée */
+.login-input {
+  width: 100%;
+  padding: 12px;
+  border-radius: 8px;
+  border: none;
+  outline: none;
+  font-size: 1rem;
+  background: rgba(255, 255, 255, 0.2);
+  color: white;
+  transition: 0.3s;
+}
+
+.login-input::placeholder {
+  color: rgba(255, 255, 255, 0.6);
+}
+
+.login-input:focus {
+  background: rgba(255, 255, 255, 0.3);
+}
+
+/* 🚨 Message d'erreur */
+.error-message {
+  color: #ff4b5c;
+  font-size: 0.9rem;
+  margin-top: -10px;
+}
+
+/* 🔘 Bouton de connexion */
+.login-button {
+  background: #e94560;
+  padding: 12px;
+  border-radius: 8px;
+  font-size: 1rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  border: none;
+  cursor: pointer;
+  transition: 0.3s;
+  color: white;
+}
+
+.login-button:hover {
+  background: #ff2e4c;
+  transform: translateY(-2px);
+  box-shadow: 0 4px 15px rgba(255, 78, 91, 0.3);
+}
+
+/* 🖥 Responsive */
+@media (max-width: 480px) {
+  .login-card {
+    padding: 2rem;
+  }
+}
