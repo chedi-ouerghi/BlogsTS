@@ -1,124 +1,95 @@
 import { Test, TestingModule } from '@nestjs/testing';
 import { AuthController } from '../src/users/auth.controller';
 import { AuthService } from '../src/users/auth.service';
-import { AuthGuard } from '@nestjs/passport';
-import { ExecutionContext } from '@nestjs/common';
+import { UnauthorizedException, NotFoundException } from '@nestjs/common';
 
 describe('AuthController', () => {
-  let authController: AuthController;
-  let authService: AuthService;
+    let authController: AuthController;
+    let authService: AuthService;
 
-  const mockAuthService = {
-    register: jest.fn().mockResolvedValue({ message: 'User registered' }),
-    validateUser: jest
-      .fn()
-      .mockResolvedValue({ _id: '123', email: 'test@test.com' }),
-    login: jest.fn().mockResolvedValue({ access_token: 'jwt_token' }),
-    getProfile: jest
-      .fn()
-      .mockResolvedValue({ _id: '123', email: 'test@test.com' }),
-  };
+    const mockAuthService = {
+        register: jest.fn(),
+        validateUser: jest.fn(),
+        login: jest.fn(),
+        getProfile: jest.fn(),
+    };
 
-  beforeEach(async () => {
-    jest.clearAllMocks();
-    const module: TestingModule = await Test.createTestingModule({
-      controllers: [AuthController],
-      providers: [{ provide: AuthService, useValue: mockAuthService }],
-    })
-      .overrideGuard(AuthGuard('jwt'))
-      .useValue({
-        canActivate: jest.fn((context: ExecutionContext) => {
-          const request = context.switchToHttp().getRequest();
-          request.user = { _id: '123', email: 'test@test.com' };
-          return true;
-        }),
-      })
-      .compile();
+    beforeEach(async () => {
+        const module: TestingModule = await Test.createTestingModule({
+            controllers: [AuthController],
+            providers: [
+                {
+                    provide: AuthService,
+                    useValue: mockAuthService,
+                },
+            ],
+        }).compile();
 
-    authController = module.get<AuthController>(AuthController);
-    authService = module.get<AuthService>(AuthService);
-  });
-
-  // Test de base : vérifier que le contrôleur est défini
-  it('devrait être défini', () => {
-    expect(authController).toBeDefined();
-  });
-
-  // Test d'enregistrement d'un utilisateur
-  it('devrait enregistrer un utilisateur', async () => {
-    const dto = { email: 'test@test.com', password: 'password' };
-    await expect(authController.register(dto)).resolves.toEqual({
-      message: 'User registered',
+        authController = module.get<AuthController>(AuthController);
+        authService = module.get<AuthService>(AuthService);
     });
-    expect(authService.register).toHaveBeenCalledWith(dto);
-  });
 
-  // Test d'enregistrement avec un e-mail déjà utilisé
-  it("devrait échouer lors de l'enregistrement avec un e-mail déjà utilisé", async () => {
-    mockAuthService.register.mockRejectedValueOnce(
-      new Error('Email already in use'),
-    );
-    const dto = { email: 'test@test.com', password: 'password' };
+    describe('register', () => {
+        it('should successfully register a user', async () => {
+            const mockUser = { username: 'testUser', email: 'test@example.com' };
+            mockAuthService.register.mockResolvedValue(mockUser);
 
-    await expect(authController.register(dto)).rejects.toThrow(
-      'Email already in use',
-    );
-  });
+            const result = await authController.register(mockUser);
 
-  // Test de connexion d'un utilisateur
-  it('devrait connecter un utilisateur', async () => {
-    const dto = { email: 'test@test.com', password: 'password' };
-    await expect(authController.login(dto)).resolves.toEqual({
-      access_token: 'jwt_token',
+            expect(result).toEqual({
+                message: 'User successfully registered',
+                user: mockUser,
+            });
+            expect(authService.register).toHaveBeenCalledWith(mockUser);
+        });
+
+        it('should throw an UnauthorizedException if registration fails', async () => {
+            mockAuthService.register.mockRejectedValue(new Error('Registration failed'));
+
+            await expect(authController.register({})).rejects.toThrow(UnauthorizedException);
+        });
     });
-    expect(authService.validateUser).toHaveBeenCalledWith(
-      dto.email,
-      dto.password,
-    );
-    expect(authService.login).toHaveBeenCalled();
-  });
 
-  // Test de connexion avec des identifiants incorrects
-  it('devrait échouer lors de la connexion avec des identifiants incorrects', async () => {
-    mockAuthService.validateUser.mockResolvedValueOnce(null); // Utilisateur non trouvé
-    const dto = { email: 'wrong@test.com', password: 'wrongpassword' };
+    describe('login', () => {
+        it('should successfully log in a user and return a token', async () => {
+            const mockUser = { username: 'testUser', email: 'test@example.com' };
+            const mockToken = { access_token: 'valid_token' };
 
-    await expect(authController.login(dto)).rejects.toThrow(
-      'Invalid credentials',
-    );
-  });
+            mockAuthService.validateUser.mockResolvedValue(mockUser);
+            mockAuthService.login.mockResolvedValue(mockToken);
 
-  // Test pour récupérer le profil utilisateur
-  it("devrait retourner le profil de l'utilisateur", async () => {
-    const req = { user: { _id: '123' } };
-    await expect(authController.getProfile(req)).resolves.toEqual({
-      _id: '123',
-      email: 'test@test.com',
+            const result = await authController.login({ email: 'test@example.com', password: '123456' });
+
+            expect(result).toEqual(mockToken);
+            expect(authService.validateUser).toHaveBeenCalledWith('test@example.com', '123456');
+            expect(authService.login).toHaveBeenCalledWith(mockUser);
+        });
+
+        it('should throw an UnauthorizedException if login fails', async () => {
+            mockAuthService.validateUser.mockRejectedValue(new Error('Invalid credentials'));
+
+            await expect(authController.login({ email: 'test@example.com', password: 'wrong' }))
+                .rejects.toThrow(UnauthorizedException);
+        });
     });
-    expect(authService.getProfile).toHaveBeenCalledWith('123');
-  });
 
-  // Test pour récupérer le profil sans utilisateur authentifié
-  it('devrait échouer lors de la récupération du profil sans utilisateur', async () => {
-    const req = { user: null }; // Pas d'utilisateur dans la requête
+    describe('getProfile', () => {
+        it('should return user profile when authenticated', async () => {
+            const mockUser = { id: '123', username: 'testUser' };
+            mockAuthService.getProfile.mockResolvedValue(mockUser);
 
-    await expect(authController.getProfile(req)).rejects.toThrow();
-  });
+            const req = { user: { id: '123' } };
+            const result = await authController.getProfile(req);
 
-  // Test pour gérer une erreur du service lors de l'enregistrement
-  it("devrait gérer les erreurs du service lors de l'enregistrement", async () => {
-    mockAuthService.register.mockRejectedValueOnce(new Error('Service error'));
-    const dto = { email: 'test@test.com', password: 'password' };
+            expect(result).toEqual(mockUser);
+            expect(authService.getProfile).toHaveBeenCalledWith('123');
+        });
 
-    await expect(authController.register(dto)).rejects.toThrow('Service error');
-  });
+        it('should throw NotFoundException if profile not found', async () => {
+            mockAuthService.getProfile.mockRejectedValue(new Error('User not found'));
 
-  // Test pour vérifier que les données sont correctement transmises au service
-  it("devrait appeler le service avec les bonnes données pour l'enregistrement", async () => {
-    const dto = { email: 'newuser@test.com', password: 'securepassword' };
-
-    await authController.register(dto);
-
-    expect(authService.register).toHaveBeenCalledWith(dto);
-  });
+            await expect(authController.getProfile({ user: { id: '123' } }))
+                .rejects.toThrow(NotFoundException);
+        });
+    });
 });

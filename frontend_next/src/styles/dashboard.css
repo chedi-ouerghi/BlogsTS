@@ -1,0 +1,129 @@
+
+.admin-dashboard{
+  padding: 10px;
+}
+
+.dashboard-container {
+  padding: 20px;
+  max-width: 1200px;
+  margin: auto;
+  background: white;
+  box-shadow: 0px 4px 10px rgba(0, 0, 0, 0.1);
+  border-radius: 10px;
+}
+
+.dashboard-title {
+  text-align: center;
+  margin-bottom: 30px;
+  font-size: 24px;
+  font-weight: bold;
+  color: #333;
+}
+
+.error-message {
+  text-align: center;
+  color: red;
+  font-size: 16px;
+}
+
+
+.dark-mode {
+  background-color: #121212;
+  color: #fff;
+}
+
+.dark-mode .dashboard-container {
+  background-color: #1e1e1e;
+  box-shadow: 0 4px 8px rgba(255, 255, 255, 0.1);
+}
+
+.dark-mode .dashboard-title {
+  color: #fff;
+}
+
+.dark-mode .table-container {
+  background-color: #444;
+}
+
+.dark-mode th {
+  background-color: #555;
+}
+
+
+.dark-mode th, .dark-mode td {
+  color: #fff;
+}
+
+
+
+.dark-mode {
+  background-color: #333 !important;
+  color: #fff !important;
+}
+
+.dark-mode .status-approved {
+  color: green;
+}
+
+.dark-mode .status-rejected {
+  color: red;
+}
+
+.dark-mode .status-pending {
+  color: orange;
+}
+
+.blog-form {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr); 
+  gap: 15px;
+  padding: 20px;
+  background-color: #f4f4f4;
+  border-radius: 8px;
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+}
+
+.blog-form input,
+.blog-form textarea,
+.blog-form button {
+  width: 100%;
+  padding: 12px;
+  margin-bottom: 15px;
+  border-radius: 6px;
+  border: 1px solid #ddd;
+  font-size: 16px;
+}
+
+.blog-form input:focus,
+.blog-form textarea:focus {
+  border-color: #4CAF50;
+  box-shadow: 0 0 5px rgba(0, 128, 0, 0.3);
+}
+
+.blog-form button {
+  background-color: #4CAF50;
+  color: white;
+  border: none;
+  cursor: pointer;
+}
+
+.blog-form button:hover {
+  background-color: #45a049;
+}
+
+.dark-mode .blog-form {
+  background-color: #333;
+  color: white;
+}
+
+.dark-mode input,
+.dark-mode textarea,
+.dark-mode button {
+  border-color: #555;
+}
+
+.dark-mode input:focus,
+.dark-mode textarea:focus {
+  border-color: #4CAF50;
+  box-shadow: 0 0 5px rgba(0, 128, 0, 0.3);
+}

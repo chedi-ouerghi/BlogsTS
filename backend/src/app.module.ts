@@ -1,5 +1,5 @@
 import { Module } from '@nestjs/common';
-import { MongooseModule } from '@nestjs/mongoose';
+import { PrismaModule } from './prisma/prisma.module';
 import { AuthModule } from './users/auth.module';
 import { BlogModule } from './blogs/blog.module';
 import * as dotenv from 'dotenv';
@@ -8,11 +8,11 @@ dotenv.config();
 
 @Module({
   imports: [
-    MongooseModule.forRoot(process.env.MONGO_URI),
+    PrismaModule,
     AuthModule,
     BlogModule,
   ],
   controllers: [],
   providers: [],
 })
-export class AppModule {}
+export class AppModule { }

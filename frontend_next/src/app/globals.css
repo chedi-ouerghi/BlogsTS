@@ -1,0 +1,91 @@
+:root {
+  --color-primary:rgb(45, 70, 160);
+  --color-secondary: #f39c12;
+  --color-bg: #f4f4f4;
+  --color-text: #2c3e50;
+  --color-white: #fff;
+  --color-gray: #bdc3c7;
+  --color-danger: #e74c3c;
+  --border-radius: 10px;
+  --card-border-radius: 15px;
+  --font-main: "Poppins", sans-serif;
+}
+
+
+
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+
+.app-container {
+  display: flex;
+  flex-direction: column;
+  height: 100vh;
+  width: 100%;
+}
+
+
+.page-content {
+  padding: 20px;
+  background-color: #fff; 
+  
+  width: 100%;
+  border-radius: 8px;
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2); 
+}
+
+
+.dark-mode {
+  background-color: #121212;
+  color: #fff;
+}
+
+.dark-mode .page-content {
+  background-color: #1e1e1e;
+  box-shadow: 0 4px 8px rgba(255, 255, 255, 0.1);
+}
+
+.navbar {
+  display: flex;
+  justify-content: space-between;
+  padding: 15px;
+  background-color: #333;
+  color: white;
+}
+
+.dark-mode .navbar {
+  background-color: #222;
+}
+
+.toggle-theme {
+  background: none;
+  border: none;
+  color: inherit;
+  font-size: 1rem;
+  cursor: pointer;
+}
+
+
+
+
+.footer {
+  background-color: #333;
+  color: #fff;
+  padding: 1rem;
+  text-align: center;
+  position: relative;
+  bottom: 0;
+  width: 100%;
+}
+
+.footer-content {
+  max-width: 1200px;
+  margin: auto;
+}
+
+.dark .footer {
+  background-color: #444;
+}

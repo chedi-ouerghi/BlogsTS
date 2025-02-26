@@ -1,10 +1,5 @@
-import {
-  IsString,
-  IsArray,
-  IsIn,
-  IsOptional,
-  IsNotEmpty,
-} from 'class-validator';
+import { IsString, IsArray, IsEnum, IsOptional } from 'class-validator';
+import { Category, BlogStatus } from '@prisma/client';
 
 export class CreateBlogDto {
   @IsString()
@@ -13,17 +8,20 @@ export class CreateBlogDto {
   @IsString()
   content: string;
 
-  @IsIn(['Scientific', 'IT'])
-  category: string;
-
-  @IsOptional()
   @IsArray()
   tags: string[];
 
-  @IsNotEmpty()
-  author: string;
+  @IsEnum(Category)
+  category: Category;
 
   @IsOptional()
   @IsArray()
-  images: string[] = [];
+  images?: string[];
+
+  @IsOptional()
+  @IsEnum(BlogStatus)
+  status?: BlogStatus;  
+
+  @IsString()
+  author: string;  
 }

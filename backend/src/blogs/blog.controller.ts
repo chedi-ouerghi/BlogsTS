@@ -20,13 +20,14 @@ import { CreateBlogDto } from './dtos/create-blog.dto';
 import { UpdateBlogDto } from './dtos/update-blog.dto';
 import { AuthGuard } from '@nestjs/passport';
 import { FilesInterceptor } from '@nestjs/platform-express';
-import { multerOptions } from './config/multer.config'; 
+import { multerOptions } from './config/multer.config';
+import { BlogStatus } from '@prisma/client';
 
 @Controller('blogs')
 export class BlogController {
-  constructor(private readonly blogService: BlogService) {}
+  constructor(private readonly blogService: BlogService) { }
 
-  @Post()
+  @Post('create')
   @UseGuards(AuthGuard('jwt'))
   @UseInterceptors(FilesInterceptor('images', 10, multerOptions))
   async create(
@@ -36,15 +37,12 @@ export class BlogController {
     @UploadedFiles() files: Express.Multer.File[],
   ) {
     try {
-      console.log('🔍 Utilisateur connecté:', req.user);
-      console.log('📸 Fichiers reçus:', files);
-
-      createBlogDto.author = req.user._id;
+      createBlogDto.author = req.user.id;
 
       if (files && files.length > 0) {
         createBlogDto.images = files.map((file) => file.path);
       } else {
-        createBlogDto.images = null;
+        createBlogDto.images = [];
       }
 
       const blog = await this.blogService.create(createBlogDto);
@@ -55,13 +53,39 @@ export class BlogController {
         data: blog,
       });
     } catch (error) {
-      console.error('❌ Erreur lors de la création du blog:', error);
       return res.status(HttpStatus.BAD_REQUEST).json({
         success: false,
-        message: 'Erreur lors de la création du blog',
+        message: error.message || 'Erreur lors de la création du blog',
       });
     }
   }
+
+
+
+  @Get('admin')
+  @UseGuards(AuthGuard('jwt'))
+  async findAllForAdmin(
+    @Request() req,
+    @Res() res: Response,
+  ) {
+    console.log('User Role:', req.user.role);
+    try {
+      const blogs = await this.blogService.findAllForAdmin(req.user.role);
+      console.log('Blogs récupérés pour l\'admin:', blogs);
+      return res.status(HttpStatus.OK).json({
+        success: true,
+        message: 'Liste des blogs récupérée avec succès pour l\'administrateur',
+        data: blogs,
+      });
+    } catch (error) {
+      console.error('Erreur lors de la récupération des blogs:', error);
+      return res.status(HttpStatus.FORBIDDEN).json({
+        success: false,
+        message: error.message || 'Erreur lors de la récupération des blogs pour l\'administrateur',
+      });
+    }
+  }
+
 
   @Get()
   async findAll(
@@ -71,20 +95,15 @@ export class BlogController {
   ) {
     try {
       const blogs = await this.blogService.findAll(page, limit);
-      console.log('📄 Liste des blogs récupérée avec succès.');
       return res.status(HttpStatus.OK).json({
         success: true,
         message: 'Liste des blogs récupérée avec succès',
         data: blogs,
       });
     } catch (error) {
-      console.error(
-        '❌ Erreur lors de la récupération des blogs :',
-        error.message,
-      );
       return res.status(HttpStatus.INTERNAL_SERVER_ERROR).json({
         success: false,
-        message: 'Erreur lors de la récupération des blogs',
+        message: error.message || 'Erreur lors de la récupération des blogs',
       });
     }
   }
@@ -93,35 +112,45 @@ export class BlogController {
   async findOne(@Param('id') id: string, @Res() res: Response) {
     try {
       const blog = await this.blogService.findOne(id);
-      if (!blog) {
-        console.warn(`⚠️ Blog avec ID ${id} non trouvé.`);
-        return res.status(HttpStatus.NOT_FOUND).json({
-          success: false,
-          message: `Blog avec ID ${id} non trouvé`,
-        });
-      }
-      console.log('🔍 Blog récupéré avec succès :', blog);
       return res.status(HttpStatus.OK).json({
         success: true,
         message: 'Blog récupéré avec succès',
         data: blog,
       });
     } catch (error) {
-      console.error(
-        '❌ Erreur lors de la récupération du blog :',
-        error.message,
-      );
-      return res.status(HttpStatus.INTERNAL_SERVER_ERROR).json({
+      return res.status(HttpStatus.NOT_FOUND).json({
         success: false,
-        message: 'Erreur lors de la récupération du blog',
+        message: error.message || 'Blog non trouvé',
       });
     }
   }
 
+
+  @Get('category/:category')
+  async findByCategory(
+    @Param('category') category: string,
+    @Res() res: Response,
+  ) {
+    try {
+      const blogs = await this.blogService.findByCategory(category);
+      return res.status(HttpStatus.OK).json({
+        success: true,
+        message: 'Liste des blogs récupérée avec succès pour la catégorie',
+        data: blogs,
+      });
+    } catch (error) {
+      return res.status(HttpStatus.INTERNAL_SERVER_ERROR).json({
+        success: false,
+        message: error.message || 'Erreur lors de la récupération des blogs par catégorie',
+      });
+    }
+  }
+
+
   @Put(':id')
   @UseGuards(AuthGuard('jwt'))
   @UseInterceptors(FilesInterceptor('images', 10, multerOptions))
-  async update(
+  async updateBlog(
     @Param('id') id: string,
     @Body() updateBlogDto: UpdateBlogDto,
     @Request() req,
@@ -129,17 +158,7 @@ export class BlogController {
     @UploadedFiles() files: Express.Multer.File[],
   ) {
     try {
-      if (files && files.length > 0) {
-        updateBlogDto.images = files.map((file) => file.path);
-      } else {
-        updateBlogDto.images = null;
-      }
-
-      const updatedBlog = await this.blogService.update(
-        id,
-        updateBlogDto,
-        req.user._id,
-      );
+      const updatedBlog = await this.blogService.update(id, updateBlogDto, req.user.id, files);
 
       return res.status(HttpStatus.OK).json({
         success: true,
@@ -154,16 +173,44 @@ export class BlogController {
     }
   }
 
+
+
   @Delete(':id')
   @UseGuards(AuthGuard('jwt'))
   async delete(@Param('id') id: string, @Request() req, @Res() res: Response) {
     try {
-      await this.blogService.delete(id, req.user._id);
-      return res.status(HttpStatus.NO_CONTENT).send(); // 204 No Content
+      await this.blogService.delete(id, req.user.id);
+      return res.status(HttpStatus.NO_CONTENT).send();
     } catch (error) {
       return res.status(HttpStatus.FORBIDDEN).json({
         success: false,
         message: error.message || 'Erreur lors de la suppression du blog',
+      });
+    }
+  }
+
+
+
+  @Put(':id/status')
+  @UseGuards(AuthGuard('jwt'))
+  async updateStatusAdmin(
+    @Param('id') id: string,
+    @Body('status') status: BlogStatus,
+    @Request() req,
+    @Res() res: Response,
+  ) {
+    try {
+      const updatedBlog = await this.blogService.updateStatusAdmin(id, status, req.user.role);
+
+      return res.status(HttpStatus.OK).json({
+        success: true,
+        message: 'Statut du blog mis à jour avec succès',
+        data: updatedBlog,
+      });
+    } catch (error) {
+      return res.status(HttpStatus.BAD_REQUEST).json({
+        success: false,
+        message: error.message || 'Erreur lors de la mise à jour du statut',
       });
     }
   }

@@ -1,0 +1,50 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "mongodb"
+  url      = env("DATABASE_URL") 
+}
+
+enum Role {
+  ADMIN
+  USER
+}
+
+enum Category {
+  SCIENTIFIC
+  IT
+}
+
+enum BlogStatus {
+  PENDING
+  APPROVED
+  REJECTED
+}
+
+model User {
+  id       String  @id @default(auto()) @map("_id") @db.ObjectId
+  username String  @unique
+  email    String  @unique
+  password String
+  role     Role    @default(USER)
+
+  blogs    Blog[]
+}
+
+model Blog {
+  id        String   @id @default(uuid()) @map("_id")
+  title     String
+  content   String
+  tags      String[]
+  category  String
+  status    BlogStatus
+  images    String[]  
+  author    User     @relation(fields: [authorId], references: [id])
+  authorId  String
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+

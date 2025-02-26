@@ -1,51 +1,75 @@
-import {
-  Injectable,
-  UnauthorizedException,
-  NotFoundException,
-} from '@nestjs/common';
-import { InjectModel } from '@nestjs/mongoose';
-import { Model } from 'mongoose';
+import { Injectable, UnauthorizedException, NotFoundException } from '@nestjs/common';
+import { PrismaService } from '../prisma/prisma.service';
 import * as bcrypt from 'bcryptjs';
 import { JwtService } from '@nestjs/jwt';
-import { User } from '../schemas/User.schema';
 
 @Injectable()
 export class AuthService {
-  constructor(
-    @InjectModel(User.name) private userModel: Model<User>,
-    private jwtService: JwtService,
-  ) {}
+  constructor(private prisma: PrismaService, private jwtService: JwtService) { }
 
-  async validateUser(email: string, password: string): Promise<any> {
-    const user = await this.userModel.findOne({ email });
+  async validateUser(email: string, password: string) {
+    const user = await this.prisma.user.findUnique({ where: { email } });
     if (user && (await bcrypt.compare(password, user.password))) {
-      const { password, ...result } = user.toObject();
+      const { password, ...result } = user;
       return result;
     }
     throw new UnauthorizedException('Invalid credentials');
   }
 
   async login(user: any) {
-    const payload = { username: user.username, sub: user._id, role: user.role };
+    const payload = { username: user.username, sub: user.id, role: user.role };
     return {
       access_token: this.jwtService.sign(payload),
     };
   }
-
   async register(createUserDto: any) {
+    
+    const role = createUserDto.role || "USER";
+
+    
     const hashedPassword = await bcrypt.hash(createUserDto.password, 10);
-    const newUser = new this.userModel({
-      ...createUserDto,
-      password: hashedPassword,
+
+    
+    return this.prisma.user.create({
+      data: {
+        username: createUserDto.username,
+        email: createUserDto.email,
+        password: hashedPassword,
+        role: role, 
+      },
     });
-    return newUser.save();
   }
+
 
   async getProfile(userId: string) {
-    const user = await this.userModel.findById(userId).select('-password');
-    if (!user) {
-      throw new NotFoundException('User not found');
+    try {
+
+      console.log('User ID:', userId);
+
+
+      const user = await this.prisma.user.findUnique({
+        where: {
+          id: userId,
+        },
+        select: {
+          id: true,
+          username: true,
+          email: true,
+          role: true,
+        },
+      });
+
+
+      if (!user) {
+        throw new Error('User profile not found');
+      }
+
+      return user;
+    } catch (error) {
+      throw error;
     }
-    return user;
   }
+
 }
+
+

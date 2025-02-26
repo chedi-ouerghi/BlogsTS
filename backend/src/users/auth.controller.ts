@@ -6,54 +6,67 @@ import {
   Request,
   Get,
   UnauthorizedException,
+  NotFoundException,
 } from '@nestjs/common';
 import { AuthService } from './auth.service';
 import { AuthGuard } from '@nestjs/passport';
 
 @Controller('auth')
 export class AuthController {
-  constructor(private authService: AuthService) {}
+  constructor(private authService: AuthService) { }
+
+
 
   @Post('register')
   async register(@Body() createUserDto: any) {
-    const newUser = await this.authService.register(createUserDto);
+    try {
+      const newUser = await this.authService.register(createUserDto);
 
-    console.log('✅ [REGISTER] New user created:');
-    console.log(`Username: ${newUser.username}`);
-    console.log(`Email: ${newUser.email}`);
+      console.log('✅ [REGISTER] New user created:');
+      console.log(`Username: ${newUser.username}`);
+      console.log(`Email: ${newUser.email}`);
 
-    return newUser;
+
+      return {
+        message: 'User successfully registered',
+        user: newUser,
+      };
+    } catch (error) {
+      console.error('Error during registration:', error);
+      throw new UnauthorizedException('Failed to register user');
+    }
   }
 
   @Post('login')
   async login(@Body() body: { email: string; password: string }) {
-    const user = await this.authService.validateUser(body.email, body.password);
+    try {
+      const user = await this.authService.validateUser(body.email, body.password);
+      const token = await this.authService.login(user);
 
-    if (!user) {
+      console.log('✅ [LOGIN] User logged in:');
+      console.log(`Username: ${user.username}`);
+      console.log(`Token: ${token.access_token}`);
+
+      return token;
+    } catch (error) {
+      console.error('Error during login:', error);
       throw new UnauthorizedException('Invalid credentials');
     }
-
-    const token = await this.authService.login(user);
-
-    console.log('✅ [LOGIN] User logged in:');
-    console.log(`Username: ${user.username}`);
-    console.log(`Token: ${token.access_token}`);
-
-    return token;
   }
 
   @Get('profile')
   @UseGuards(AuthGuard('jwt'))
   async getProfile(@Request() req) {
-    // console.log('🔍 [PROFILE] Request Headers:', req.headers);
-    // console.log('🔍 [PROFILE] Decoded User:', req.user);
-
-    const userProfile = await this.authService.getProfile(req.user._id);
-
-    console.log('✅ [PROFILE] User Profile Retrieved:');
-    console.log(`Username: ${userProfile.username}`);
-    console.log(`Email: ${userProfile.email}`);
-
-    return userProfile;
+    const userId = req.user.id;
+    console.log('User ID:', userId);
+    try {
+      const user = await this.authService.getProfile(userId);
+      return user;
+    } catch (error) {
+      console.error('Error retrieving profile:', error);
+      throw new NotFoundException('User profile not found');
+    }
   }
+
+
 }

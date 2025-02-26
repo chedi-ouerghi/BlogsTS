@@ -1,26 +1,12 @@
-import { Type } from 'class-transformer';
+import { Role } from '@prisma/client';
 import {
-  IsBoolean,
   IsEmail,
+  IsEnum,
   IsNotEmpty,
   IsOptional,
   IsString,
-  ValidateNested,
 } from 'class-validator';
 
-export class CreateUserSettingsDto {
-  @IsOptional()
-  @IsBoolean()
-  receiveNotifications?: boolean;
-
-  @IsOptional()
-  @IsBoolean()
-  receiveEmails?: boolean;
-
-  @IsOptional()
-  @IsBoolean()
-  receiveSMS?: boolean;
-}
 
 export class CreateUserDto {
   @IsNotEmpty()
@@ -36,15 +22,6 @@ export class CreateUserDto {
   password: string;
 
   @IsOptional()
-  @IsString()
-  displayName?: string;
-
-  @IsOptional()
-  @IsString()
-  role?: string;
-
-  @IsOptional()
-  @ValidateNested()
-  @Type(() => CreateUserSettingsDto)
-  settings?: CreateUserSettingsDto;
+  @IsEnum(Role)
+  role?: Role = Role.USER; 
 }
