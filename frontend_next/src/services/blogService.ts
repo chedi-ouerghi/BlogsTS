@@ -89,7 +89,7 @@ export const updateBlog = async (
   }
 
   
-  for (let pair of formData.entries()) {
+  for (const pair of formData.entries()) {
     console.log(pair[0], pair[1]);
   }
 
@@ -181,7 +181,7 @@ export const getBlogsByCategory = async (category: string) => {
 
 
 
-export const updateBlogStatus = async (id, status) => {
+export const updateBlogStatus = async (id: string, status: string) => {
   const token = Cookies.get("token");
   await axios.put(
     `${API_URL}/${id}/status`,
@@ -191,3 +191,19 @@ export const updateBlogStatus = async (id, status) => {
     }
   );
 };
+
+
+export const deleteBlog = async (id: string, token: string) => {
+  try {
+    const response = await axios.delete(`${API_URL}/${id}`, {
+      headers: {
+        Authorization: `Bearer ${token}`,
+      },
+    });
+    return response.data;
+  } catch (error) {
+    console.error("Erreur lors de la suppression du blog:", error);
+    throw new Error("Erreur lors de la suppression du blog");
+  }
+};
+

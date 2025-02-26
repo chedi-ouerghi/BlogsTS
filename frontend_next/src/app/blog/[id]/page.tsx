@@ -2,7 +2,7 @@
 import { useEffect, useState } from "react";
 import { useParams, useRouter } from "next/navigation";
 import Cookies from "js-cookie";
-import { getOneBlog } from "@/services/blogService";
+import { getOneBlog, deleteBlog } from "@/services/blogService";
 import UpdateBlogModal from "@/components/UpdateBlogModal";
 import "@/styles/blog.css";
 
@@ -42,6 +42,21 @@ const GetOneBlog = ({ darkMode }: { darkMode: boolean }) => {
     fetchBlog();
   }, [id]);
 
+  const handleDelete = async () => {
+    const token = Cookies.get("token");
+    if (!token) {
+      console.error("Token manquant");
+      return;
+    }
+
+    try {
+      await deleteBlog(id as string, token); 
+      router.push("/home-content"); 
+    } catch (error) {
+      console.error("Erreur lors de la suppression du blog:", error);
+    }
+  };
+
   if (loading) return <p>Chargement...</p>;
   if (!blog) return <p>Blog non trouvé.</p>;
 
@@ -57,36 +72,33 @@ const GetOneBlog = ({ darkMode }: { darkMode: boolean }) => {
 
   return (
     <div className={`blog-container ${darkMode ? "dark-mode" : ""}`}>
-      
-
       <div className={`blog-header ${darkMode ? "dark-mode" : ""}`}>
         <button className="back-button" onClick={() => router.push("/home-content")}>
-        ← Retour
-      </button>
-      <div>
-       <p className="author">
-  Écrit par <span>{blog.author?.username || "Auteur inconnu"}</span> • {new Date(blog.createdAt).toLocaleDateString()}
-</p>
-
+          ← Retour
+        </button>
+        <div>
+          <p className="author">
+            Écrit par <span>{blog.author?.username || "Auteur inconnu"}</span> • {new Date(blog.createdAt).toLocaleDateString()}
+          </p>
           <h1>{blog.title}</h1>
+        </div>
       </div>
-</div>
-{blog.images?.length > 0 && (
-  <div className="image-carousel">
-    {blog.images.length > 1 && (
-      <button className="prev-button" onClick={prevImage}>←</button>
-    )}
-    <img
-      src={`http://localhost:6505/${blog.images[currentImageIndex].replace(/\\/g, "/")}`}
-      alt={blog.title}
-      className="blog-image"
-    />
-    {blog.images.length > 1 && (
-      <button className="next-button" onClick={nextImage}>→</button>
-    )}
-  </div>
-)}
 
+      {blog.images?.length > 0 && (
+        <div className="image-carousel">
+          {blog.images.length > 1 && (
+            <button className="prev-button" onClick={prevImage}>←</button>
+          )}
+          <img
+            src={`http://localhost:6505/${blog.images[currentImageIndex].replace(/\\/g, "/")}`}
+            alt={blog.title}
+            className="blog-image"
+          />
+          {blog.images.length > 1 && (
+            <button className="next-button" onClick={nextImage}>→</button>
+          )}
+        </div>
+      )}
 
       <div className="blog-content">
         <p className="content">{blog.content}</p>
@@ -104,9 +116,14 @@ const GetOneBlog = ({ darkMode }: { darkMode: boolean }) => {
       </div>
 
       {userId === blog.authorId && (
-        <button className="edit-button" onClick={() => setIsModalOpen(true)}>
-          Modifier
-        </button>
+        <div className="blog-actions">
+          <button className="edit-button" onClick={() => setIsModalOpen(true)}>
+            Modifier
+          </button>
+          <button className="delete-button" onClick={handleDelete}>
+            Supprimer
+          </button>
+        </div>
       )}
 
       {isModalOpen && (
