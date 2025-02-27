@@ -76,18 +76,26 @@ const HomeContent = ({ darkMode }: { darkMode: boolean }) => {
         1440: { slidesPerView: 4 },
       }}
     >
-      {blogs.map((blog, index) => (
-        <SwiperSlide key={index} className="blog-card" onClick={() => router.push(`/blog/${blog._id || blog.id}`)}>
-          <div className="blog-image-container">
-            <img src={`${baseUrl}/${blog.images[0]}`} alt={blog.title} className="blog-image" />
-          </div>
-          <div className="blog-content">
-            <span className="blog-category">{blog.category}</span>
-            <h3 className="blog-title">{blog.title}</h3>
-            <p className="blog-excerpt">{blog.content.slice(0, 70)}...</p>
-          </div>
-        </SwiperSlide>
-      ))}
+     {blogs.map((blog, index) => (
+  <SwiperSlide key={index} className="card_blog" onClick={() => router.push(`/blog/${blog._id || blog.id}`)}>
+    <div className="tools">
+      <div className="circle"><span className="red box"></span></div>
+      <div className="circle"><span className="yellow box"></span></div>
+      <div className="circle"><span className="green box"></span></div>
+    </div>
+    <div className="card__content">
+      <div className="blog-image-container">
+        <img src={`${baseUrl}/${blog.images[0]}`} alt={blog.title} className="blog-image" />
+      </div>
+      <div className="card__body">
+        <span className="tag tag-blue">{blog.category}</span>
+        <h3 className="blog-title">{blog.title}</h3>
+        <p className="blog-excerpt">{blog.content.slice(0, 70)}...</p>
+      </div>
+    </div>
+  </SwiperSlide>
+))}
+
     </Swiper>
   );
 
@@ -119,14 +127,14 @@ const HomeContent = ({ darkMode }: { darkMode: boolean }) => {
             <p className="no-blogs">Aucun blog trouvé.</p>
           ) : (
             blogs.map((blog, index) => (
-              <li key={index} className="blog-card" onClick={() => router.push(`/blog/${blog._id || blog.id}`)}>
-                <div className="blog-image-container">
-                  <img src={`${baseUrl}/${blog.images[0]}`} alt={blog.title} className="blog-image" />
+              <li key={index} className="card" onClick={() => router.push(`/blog/${blog._id || blog.id}`)}>
+                <div className="card__header">
+                  <img src={`${baseUrl}/${blog.images[0]}`} alt={blog.title} className="card__image" />
                 </div>
-                <div className="blog-content">
-                  <span className="blog-category">{blog.category}</span>
-                  <h3 className="blog-title">{blog.title}</h3>
-<p className="blog-excerpt">
+                <div className="card__body">
+                  <span className="tag tag-blue">{blog.category}</span>
+                  <h4 className="blog-title">{blog.title}</h4>
+<p className="blog-excerpt-0">
   {blog.content.length > 70 ? blog.content.slice(0, 70) + "..." : blog.content}
 </p>
                 </div>

@@ -70,20 +70,15 @@ const GetOneBlog = ({ darkMode }: { darkMode: boolean }) => {
     );
   };
 
-  return (
-    <div className={`blog-container ${darkMode ? "dark-mode" : ""}`}>
-      <div className={`blog-header ${darkMode ? "dark-mode" : ""}`}>
-        <button className="back-button" onClick={() => router.push("/home-content")}>
-          ← Retour
-        </button>
-        <div>
-          <p className="author">
-            Écrit par <span>{blog.author?.username || "Auteur inconnu"}</span> • {new Date(blog.createdAt).toLocaleDateString()}
-          </p>
-          <h1>{blog.title}</h1>
-        </div>
-      </div>
+return (
+  <div className="blog-container">
+    
 
+    <div className="left-section">
+      <button className="back-button" onClick={() => router.push("/home-content")}>
+        ← Retour
+      </button>
+      
       {blog.images?.length > 0 && (
         <div className="image-carousel">
           {blog.images.length > 1 && (
@@ -99,7 +94,17 @@ const GetOneBlog = ({ darkMode }: { darkMode: boolean }) => {
           )}
         </div>
       )}
+    </div>
 
+
+    <div className="right-section">
+      <div className="blog-header">
+        <h1>{blog.title}</h1>
+        <p className="author">
+          Écrit par <span>{blog.author?.username || "Auteur inconnu"}</span> • {new Date(blog.createdAt).toLocaleDateString()}
+        </p>
+      </div>
+      
       <div className="blog-content">
         <p className="content">{blog.content}</p>
       </div>
@@ -115,6 +120,7 @@ const GetOneBlog = ({ darkMode }: { darkMode: boolean }) => {
         </div>
       </div>
 
+  
       {userId === blog.authorId && (
         <div className="blog-actions">
           <button className="edit-button" onClick={() => setIsModalOpen(true)}>
@@ -126,6 +132,7 @@ const GetOneBlog = ({ darkMode }: { darkMode: boolean }) => {
         </div>
       )}
 
+  
       {isModalOpen && (
         <UpdateBlogModal
           blogId={id as string}
@@ -135,7 +142,10 @@ const GetOneBlog = ({ darkMode }: { darkMode: boolean }) => {
         />
       )}
     </div>
-  );
+
+  </div>
+);
+
 };
 
 export default GetOneBlog;
